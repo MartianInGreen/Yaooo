@@ -1,5 +1,6 @@
 package app.yaooo.ui
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
@@ -24,7 +26,7 @@ import app.yaooo.data.WorkInfo
 import app.yaooo.util.Ao3Url
 import kotlinx.coroutines.launch
 
-private enum class LibraryFilter(val label: String) { ALL("All"), UPDATES("New chapters"), DOWNLOADED("Downloaded"), WIP("In progress") }
+private enum class LibraryFilter(val label: String) { ALL("All"), UPDATES("New chapters"), DOWNLOADED("Downloaded"), WIP("In progress"), FINISHED("Finished") }
 
 @Composable
 fun LibraryScreen(
@@ -39,17 +41,21 @@ fun LibraryScreen(
         LibraryFilter.ALL -> works
         LibraryFilter.UPDATES -> works.filter { it.unreadNew > 0 }
         LibraryFilter.DOWNLOADED -> works.filter { it.downloaded }
-        LibraryFilter.WIP -> works.filter { !it.info.complete }
+        LibraryFilter.WIP -> works.filter { !it.info.complete && !it.finished }
+        LibraryFilter.FINISHED -> works.filter { it.finished }
     }
     Column(Modifier.fillMaxSize()) {
         Row(Modifier.fillMaxWidth().padding(12.dp, 8.dp, 12.dp, 0.dp), verticalAlignment = Alignment.CenterVertically) {
             Text("Library", style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
             FilledTonalButton(onClick = { showAdd = true }) { Icon(Icons.Default.Add, null, Modifier.size(18.dp)); Text("  Add from URL") }
         }
-        Row(Modifier.padding(12.dp, 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(12.dp, 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             LibraryFilter.entries.forEach { f ->
                 val count = if (f == LibraryFilter.UPDATES) works.count { it.unreadNew > 0 } else 0
-                FilterChip(filter == f, { filter = f }, label = { Text(f.label + if (count > 0) " ($count)" else "") })
+                FilterChip(filter == f, { filter = f }, label = { Text(f.label + if (count > 0) " ($count)" else "", maxLines = 1, softWrap = false) })
             }
         }
         if (shown.isEmpty()) {

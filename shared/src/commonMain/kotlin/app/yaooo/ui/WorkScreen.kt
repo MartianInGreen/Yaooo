@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
@@ -129,7 +130,13 @@ fun WorkScreen(
                         }
                     }
                 }
-                if (lib?.bookmarked == true && !info.complete) {
+                if (lib != null) {
+                    val done = lib?.finished == true
+                    OutlinedButton(onClick = { repo.setFinished(state.id, !done) }, Modifier.padding(top = 8.dp)) {
+                        Icon(Icons.Default.CheckCircle, null); Text(if (done) "  Marked as finished · undo" else "  Mark as finished")
+                    }
+                }
+                if (lib?.bookmarked == true && !info.complete && lib?.finished != true) {
                     Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                         Icon(if (lib?.notify == true) Icons.Default.Notifications else Icons.Default.NotificationsOff, null)
                         Text("  Notify me about new chapters", Modifier.weight(1f))

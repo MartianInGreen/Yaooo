@@ -27,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -43,7 +44,7 @@ fun WorkCard(
     modifier: Modifier = Modifier,
     progress: ReadProgress? = null,
 ) {
-    Card(modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp).clickable(onClick = onClick)) {
+    Card(modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 6.dp).alpha(if (library?.finished == true) 0.65f else 1f).clickable(onClick = onClick)) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.Top) {
                 Column(Modifier.weight(1f)) {
@@ -70,7 +71,9 @@ fun WorkCard(
             if (work.summary.isNotBlank())
                 Text(work.summary, style = MaterialTheme.typography.bodySmall, maxLines = 3, overflow = TextOverflow.Ellipsis, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Text(statsLine(work), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            if (progress != null) {
+            if (library?.finished == true) {
+                Text("Finished", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.SemiBold)
+            } else if (progress != null) {
                 val f = progress.fraction(work)
                 LinearProgressIndicator(progress = { f }, modifier = Modifier.fillMaxWidth())
                 Text(

@@ -35,6 +35,7 @@ data class LibraryWork(
     val downloaded: Boolean,
     val knownChapters: Int,
     val unreadNew: Int,
+    val finished: Boolean,
 )
 
 data class ChapterRef(val position: Int, val ao3Id: Long?, val title: String, val date: String = "")

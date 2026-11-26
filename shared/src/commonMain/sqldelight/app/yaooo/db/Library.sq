@@ -27,7 +27,8 @@ CREATE TABLE work (
     downloaded INTEGER NOT NULL DEFAULT 0,
     known_chapters INTEGER NOT NULL DEFAULT 0,
     unread_new INTEGER NOT NULL DEFAULT 0,
-    last_checked INTEGER NOT NULL DEFAULT 0
+    last_checked INTEGER NOT NULL DEFAULT 0,
+    finished INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX work_bookmarked ON work(bookmarked, bookmarked_at);
@@ -72,13 +73,16 @@ observeWork:
 SELECT * FROM work WHERE id = ?;
 
 observeLibrary:
-SELECT * FROM work WHERE bookmarked = 1 OR downloaded = 1 ORDER BY unread_new DESC, bookmarked_at DESC;
+SELECT * FROM work WHERE bookmarked = 1 OR downloaded = 1 ORDER BY finished ASC, unread_new DESC, bookmarked_at DESC;
 
 selectNotifyTargets:
-SELECT * FROM work WHERE bookmarked = 1 AND notify = 1 AND complete = 0;
+SELECT * FROM work WHERE bookmarked = 1 AND notify = 1 AND complete = 0 AND finished = 0;
 
 setBookmarked:
 UPDATE work SET bookmarked = ?, bookmarked_at = ?, known_chapters = CASE WHEN ? = 1 AND known_chapters = 0 THEN chapters_current ELSE known_chapters END WHERE id = ?;
+
+setFinished:
+UPDATE work SET finished = ?, unread_new = CASE WHEN ? = 1 THEN 0 ELSE unread_new END WHERE id = ?;
 
 setNotify:
 UPDATE work SET notify = ? WHERE id = ?;

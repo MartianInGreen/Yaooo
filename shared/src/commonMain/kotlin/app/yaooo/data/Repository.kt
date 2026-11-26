@@ -109,6 +109,11 @@ class Repository(
         }
     }
 
+    fun setFinished(id: Long, finished: Boolean) {
+        val v = if (finished) 1L else 0L
+        q.setFinished(v, v, id)
+    }
+
     fun setNotify(id: Long, notify: Boolean) = q.setNotify(if (notify) 1 else 0, id)
 
     suspend fun download(id: Long, seed: WorkInfo? = null) {
@@ -201,6 +206,7 @@ class Repository(
         downloaded = downloaded == 1L,
         knownChapters = known_chapters.toInt(),
         unreadNew = unread_new.toInt(),
+        finished = finished == 1L,
     )
 }
 
