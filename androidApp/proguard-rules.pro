@@ -1,0 +1,4 @@
+-dontwarn org.slf4j.**
+-dontwarn java.lang.management.**
+-keep class app.yaooo.android.** { *; }
+-keep class app.yaooo.UpdateWorker { *; }

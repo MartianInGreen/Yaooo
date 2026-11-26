@@ -1,0 +1,126 @@
+CREATE TABLE work (
+    id INTEGER NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    authors TEXT NOT NULL,
+    fandoms TEXT NOT NULL,
+    rating TEXT NOT NULL,
+    warnings TEXT NOT NULL,
+    categories TEXT NOT NULL,
+    relationships TEXT NOT NULL,
+    characters TEXT NOT NULL,
+    freeforms TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    language TEXT NOT NULL,
+    words INTEGER NOT NULL,
+    chapters_current INTEGER NOT NULL,
+    chapters_total INTEGER,
+    complete INTEGER NOT NULL DEFAULT 0,
+    kudos INTEGER NOT NULL DEFAULT 0,
+    hits INTEGER NOT NULL DEFAULT 0,
+    bookmarks INTEGER NOT NULL DEFAULT 0,
+    comments INTEGER NOT NULL DEFAULT 0,
+    updated TEXT NOT NULL,
+    -- library state
+    bookmarked INTEGER NOT NULL DEFAULT 0,
+    bookmarked_at INTEGER NOT NULL DEFAULT 0,
+    notify INTEGER NOT NULL DEFAULT 1,
+    downloaded INTEGER NOT NULL DEFAULT 0,
+    known_chapters INTEGER NOT NULL DEFAULT 0,
+    unread_new INTEGER NOT NULL DEFAULT 0,
+    last_checked INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX work_bookmarked ON work(bookmarked, bookmarked_at);
+
+CREATE TABLE chapter (
+    work_id INTEGER NOT NULL,
+    position INTEGER NOT NULL,
+    ao3_id INTEGER,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    PRIMARY KEY (work_id, position)
+);
+
+CREATE TABLE progress (
+    work_id INTEGER NOT NULL PRIMARY KEY,
+    position INTEGER NOT NULL,
+    block_index INTEGER NOT NULL,
+    updated_at INTEGER NOT NULL,
+    block_count INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE setting (
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+insertWork:
+INSERT OR IGNORE INTO work(id, title, authors, fandoms, rating, warnings, categories, relationships, characters, freeforms,
+                           summary, language, words, chapters_current, chapters_total, complete, kudos, hits, bookmarks, comments, updated)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateWork:
+UPDATE work SET title = ?2, authors = ?3, fandoms = ?4, rating = ?5, warnings = ?6, categories = ?7, relationships = ?8,
+    characters = ?9, freeforms = ?10, summary = ?11, language = ?12, words = ?13, chapters_current = ?14,
+    chapters_total = ?15, complete = ?16, kudos = ?17, hits = ?18, bookmarks = ?19, comments = ?20, updated = ?21
+WHERE id = ?1;
+
+selectWork:
+SELECT * FROM work WHERE id = ?;
+
+observeWork:
+SELECT * FROM work WHERE id = ?;
+
+observeLibrary:
+SELECT * FROM work WHERE bookmarked = 1 OR downloaded = 1 ORDER BY unread_new DESC, bookmarked_at DESC;
+
+selectNotifyTargets:
+SELECT * FROM work WHERE bookmarked = 1 AND notify = 1 AND complete = 0;
+
+setBookmarked:
+UPDATE work SET bookmarked = ?, bookmarked_at = ?, known_chapters = CASE WHEN ? = 1 AND known_chapters = 0 THEN chapters_current ELSE known_chapters END WHERE id = ?;
+
+setNotify:
+UPDATE work SET notify = ? WHERE id = ?;
+
+setDownloaded:
+UPDATE work SET downloaded = ? WHERE id = ?;
+
+markChecked:
+UPDATE work SET last_checked = ? WHERE id = ?;
+
+recordNewChapters:
+UPDATE work SET known_chapters = ?, unread_new = unread_new + ?, last_checked = ? WHERE id = ?;
+
+clearUnread:
+UPDATE work SET unread_new = 0, known_chapters = MAX(known_chapters, chapters_current) WHERE id = ?;
+
+deleteChaptersFor:
+DELETE FROM chapter WHERE work_id = ?;
+
+insertChapter:
+INSERT OR REPLACE INTO chapter(work_id, position, ao3_id, title, content) VALUES (?, ?, ?, ?, ?);
+
+selectChapter:
+SELECT * FROM chapter WHERE work_id = ? AND position = ?;
+
+selectChapterTitles:
+SELECT position, ao3_id, title FROM chapter WHERE work_id = ? ORDER BY position;
+
+countChapters:
+SELECT COUNT(*) FROM chapter WHERE work_id = ?;
+
+upsertProgress:
+INSERT OR REPLACE INTO progress(work_id, position, block_index, block_count, updated_at) VALUES (?, ?, ?, ?, ?);
+
+selectProgress:
+SELECT * FROM progress WHERE work_id = ?;
+
+observeProgress:
+SELECT * FROM progress;
+
+getSetting:
+SELECT value FROM setting WHERE key = ?;
+
+putSetting:
+INSERT OR REPLACE INTO setting(key, value) VALUES (?, ?);
